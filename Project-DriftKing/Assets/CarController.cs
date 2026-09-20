@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 public class CarController : MonoBehaviour
@@ -9,6 +9,10 @@ public class CarController : MonoBehaviour
     public float Drag = 0.98f;
     public float SteerAngle = 20;
     public float Traction = 1;
+
+    [Header("Drift Settings")]
+    public float DriftBoost;
+    public bool IsDrifing = false;
 
     [Header("Trials")]
     public GameObject RightBackTrial;
@@ -28,29 +32,53 @@ public class CarController : MonoBehaviour
         MoveForce *= Drag;
         MoveForce = Vector3.ClampMagnitude(MoveForce, MaxSpeed);
 
-        if(Input.GetKey(KeyCode.Space))
+        if (Input.GetKeyUp(KeyCode.Space) && IsDrifing)
+        {
+            StartCoroutine(SpeedBoost());
+        }
+
+        if (Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.D))
             ActivateDriftSequence();
         else
             NormalDrivngControls();
 
+
             //traction
-        Debug.DrawRay(transform.position, MoveForce.normalized * 3);
-        Debug.DrawRay(transform.position, transform.forward * 3, Color.blue);
+        UnityEngine.Debug.DrawRay(transform.position, MoveForce.normalized * 3);
+        UnityEngine.Debug.DrawRay(transform.position, transform.forward * 3, Color.blue);
         MoveForce = Vector3.Lerp(MoveForce.normalized, transform.forward, Traction * Time.deltaTime) * MoveForce.magnitude;
     }
 
     void ActivateDriftSequence()
     {
-        SteerAngle = 20;
+        SteerAngle = 10;
         Traction = 1;
         RightBackTrial.SetActive(true);
         LeftBackTrial.SetActive(true);
+
+        CheckIfPlayerGetsBoost();
     }
 
+    void CheckIfPlayerGetsBoost()
+    {
+        if (Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.W))
+        {
+            IsDrifing = true;
+        }
+
+    }
+    IEnumerator SpeedBoost()
+    {
+        Speed = DriftBoost;
+        yield return new WaitForSecondsRealtime(1f);
+        UnityEngine.Debug.Log("done boost");
+        Speed = MaxSpeed;
+        IsDrifing = false;
+    }
     void NormalDrivngControls()
     {
-        SteerAngle = 10;
-        Traction = 10;
+        SteerAngle = 3;
+        Traction = 25;
         RightBackTrial.SetActive(false);
         LeftBackTrial.SetActive(false);
     }
