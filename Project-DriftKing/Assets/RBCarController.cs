@@ -16,6 +16,11 @@ public class RBCarController : MonoBehaviour
     public float GroundRayLength = 0.5f;
     public Transform GroundRayPoint;
 
+    [Header("Transmission Settings")]
+    public float RPM;
+    public float MaxRPMForFirstGear;
+    public float MaxRPMForSecondGear;
+
     public Transform LeftFrontWheel, RightFrontWheel;
     public float MaxWheelTurn;
 
@@ -31,6 +36,7 @@ public class RBCarController : MonoBehaviour
         if(Input.GetAxis("Vertical") > 0 )
         {
             speedInput = Input.GetAxis("Vertical") * ForwardAccel * 1000;
+            RPM++;
         }
         else if(Input.GetAxis("Vertical") < 0)
         {
@@ -75,5 +81,10 @@ public class RBCarController : MonoBehaviour
             CarRB.drag = 0.1f;
             CarRB.AddForce(Vector3.up * -GravityForce * 100f);
         }
+    }
+
+    void Transmission()
+    {
+
     }
 }
