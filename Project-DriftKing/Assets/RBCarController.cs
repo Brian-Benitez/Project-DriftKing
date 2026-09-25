@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -16,10 +17,19 @@ public class RBCarController : MonoBehaviour
     public float GroundRayLength = 0.5f;
     public Transform GroundRayPoint;
 
+    public enum Gear
+    {
+        First,
+        Second,
+        Third,
+    }
     [Header("Transmission Settings")]
+    public Gear CurrentGear;
     public float RPM;
     public float MaxRPMForFirstGear;
     public float MaxRPMForSecondGear;
+
+    public TextMeshProUGUI GearText;
 
     public Transform LeftFrontWheel, RightFrontWheel;
     public float MaxWheelTurn;
@@ -27,6 +37,7 @@ public class RBCarController : MonoBehaviour
     void Start()
     {
         CarRB.transform.parent = null;
+        GearText.text = 1.ToString();  
     }
 
 
@@ -42,7 +53,13 @@ public class RBCarController : MonoBehaviour
         {
             speedInput = Input.GetAxis("Vertical") * reverseAccel * 1000;
         }
-
+        else
+        {
+            if (RPM <= 0)
+                RPM = 0;
+            else
+                RPM--;
+        }
 
         turnInput = Input.GetAxis("Horizontal");
 
@@ -54,6 +71,8 @@ public class RBCarController : MonoBehaviour
         LeftFrontWheel.localRotation = Quaternion.Euler(LeftFrontWheel.localRotation.eulerAngles.x, (turnInput * MaxWheelTurn), LeftFrontWheel.localRotation.eulerAngles.z);
         RightFrontWheel.localRotation = Quaternion.Euler(RightFrontWheel.localRotation.eulerAngles.x, (turnInput * MaxWheelTurn), RightFrontWheel.localRotation.eulerAngles.z);
         transform.position = CarRB.transform.position;
+
+        Transmission();
     }
 
     private void FixedUpdate()
@@ -85,6 +104,25 @@ public class RBCarController : MonoBehaviour
 
     void Transmission()
     {
+        if(CurrentGear == Gear.Second && RPM <= MaxRPMForFirstGear)
+        {
+            CurrentGear = Gear.First;
+            GearText.text = 1.ToString();
+            ForwardAccel = 5;
+        }
+        if (RPM >= MaxRPMForFirstGear)
+        {
+            CurrentGear = Gear.Second;//idea, have max accelrate here and slowly build up to it, so it feels a bit more natural
+            GearText.text = 2.ToString();
+            ForwardAccel = 8;
+        }
+        if (RPM >= MaxRPMForSecondGear)
+        {
+            CurrentGear = Gear.Third;
+            GearText.text = 3.ToString();
+            ForwardAccel = 12;
+        }
+
 
     }
 }
