@@ -2,15 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.XR;
 
 public class RBCarController : MonoBehaviour
 {
     public Rigidbody CarRB;
-    public float ForwardAccel, reverseAccel, MaxSpeed, TurnStrength, GravityForce , DragGroundValue;
-
+    public float ForwardAccel, AccelMultipler, reverseAccel, SlowestSpeed, MaxSpeed, TurnStrength, GravityForce , DragGroundValue;
+    public float SlowdownDecay;
     private float speedInput, turnInput;
 
+    public bool IsAcclerating = false;
     private bool Grounded;
 
     public LayerMask WhatIsGround;
@@ -25,9 +25,6 @@ public class RBCarController : MonoBehaviour
     }
     [Header("Transmission Settings")]
     public Gear CurrentGear;
-    public float RPM;
-    public float MaxRPMForFirstGear;
-    public float MaxRPMForSecondGear;
 
     public TextMeshProUGUI GearText;
 
@@ -43,23 +40,45 @@ public class RBCarController : MonoBehaviour
 
     void Update()
     {
-        speedInput = 0;
-        if(Input.GetAxis("Vertical") > 0 )
+
+
+        if (Input.GetKeyUp(KeyCode.W))
+            IsAcclerating = false;
+
+        if (Input.GetKey(KeyCode.S) || !IsAcclerating)//braking
         {
-            speedInput = Input.GetAxis("Vertical") * ForwardAccel * 1000;
-            RPM++;
-        }
-        else if(Input.GetAxis("Vertical") < 0)
-        {
-            speedInput = Input.GetAxis("Vertical") * reverseAccel * 1000;
-        }
-        else
-        {
-            if (RPM <= 0)
-                RPM = 0;
+            if (speedInput < 0)
+                speedInput = 0;
             else
-                RPM--;
+            {
+                speedInput -= SlowdownDecay;
+                ForwardAccel -= 0.05f;
+                Debug.Log("slow car down");
+            }
+
+            if (ForwardAccel <= SlowestSpeed)
+                ForwardAccel = 5f;
+            /*
+            if (Input.GetAxis("Vertical") < 0)//reversing
+            {
+                speedInput = Input.GetAxis("Vertical") * reverseAccel;
+            }
+            */
         }
+ 
+        if (Input.GetKey(KeyCode.W))//accelerating
+        {
+            IsAcclerating = true;
+            speedInput = Input.GetAxis("Vertical") * ForwardAccel * 1000;
+
+            if (ForwardAccel >= MaxSpeed)
+                ForwardAccel = MaxSpeed;
+            else
+                ForwardAccel += AccelMultipler;//0.0003f;
+        }
+
+
+
 
         turnInput = Input.GetAxis("Horizontal");
 
@@ -88,7 +107,6 @@ public class RBCarController : MonoBehaviour
 
         if(Grounded)
         {
-
             CarRB.drag = DragGroundValue;
             if (Mathf.Abs(speedInput) > 0)
             {
@@ -104,25 +122,27 @@ public class RBCarController : MonoBehaviour
 
     void Transmission()
     {
+       
+        /*
         if(CurrentGear == Gear.Second && RPM <= MaxRPMForFirstGear)
         {
             CurrentGear = Gear.First;
             GearText.text = 1.ToString();
             ForwardAccel = 5;
         }
-        if (RPM >= MaxRPMForFirstGear)
+        */
+
+        if (ForwardAccel >= 5.5f && CurrentGear != Gear.Second)
         {
-            CurrentGear = Gear.Second;//idea, have max accelrate here and slowly build up to it, so it feels a bit more natural
+            CurrentGear = Gear.Second;
             GearText.text = 2.ToString();
-            ForwardAccel = 8;
+            AccelMultipler = 0.0005f;
         }
-        if (RPM >= MaxRPMForSecondGear)
+        if (ForwardAccel >= 6.5f && CurrentGear != Gear.Third)
         {
             CurrentGear = Gear.Third;
             GearText.text = 3.ToString();
-            ForwardAccel = 12;
+            AccelMultipler = 0.0006f;
         }
-
-
     }
 }
