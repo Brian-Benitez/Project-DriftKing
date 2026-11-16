@@ -6,13 +6,19 @@ using UnityEngine;
 public class RBCarController : MonoBehaviour
 {
     public Rigidbody CarRB;
+    [Header("Accelerating Settings")]
     public float ForwardAccel, AccelMultipler, reverseAccel, SlowestSpeed, MaxSpeed, TurnStrength, GravityForce , DragGroundValue;
-    public float SlowdownDecay;
     private float speedInput, turnInput;
+    private bool IsAcclerating = false;
+    
+    [Header("Braking Settings")]
+    public bool IsBraking = false;
+    public float BrakingPowerForSpeed;
+    public float BrakingPowerForForwardAccel;
+    public float SlowdownDecay;
 
-    public bool IsAcclerating = false;
+    [Header("Gorund Raycasting Settings")]
     private bool Grounded;
-
     public LayerMask WhatIsGround;
     public float GroundRayLength = 0.5f;
     public Transform GroundRayPoint;
@@ -40,24 +46,43 @@ public class RBCarController : MonoBehaviour
 
     void Update()
     {
-
-
         if (Input.GetKeyUp(KeyCode.W))
             IsAcclerating = false;
 
+        if (Input.GetKey(KeyCode.S))
+            IsBraking = true;
+        else
+            IsBraking = false;
+
+       
+
         if (Input.GetKey(KeyCode.S) || !IsAcclerating)//braking
         {
-            if (speedInput < 0)
-                speedInput = 0;
-            else
+            if(IsBraking)
             {
-                speedInput -= SlowdownDecay;
-                ForwardAccel -= 0.05f;
-                Debug.Log("slow car down");
-            }
+                speedInput -= BrakingPowerForSpeed;
+                ForwardAccel -= BrakingPowerForForwardAccel;
 
-            if (ForwardAccel <= SlowestSpeed)
-                ForwardAccel = 5f;
+                if (ForwardAccel <= SlowestSpeed)
+                    ForwardAccel = SlowestSpeed;
+
+                if (speedInput < 0)
+                    speedInput = 0;
+            }
+            else//for when player is not accelerating
+            {
+                if (speedInput < 0)
+                    speedInput = 0;
+                else
+                {
+                    speedInput -= SlowdownDecay;
+                    ForwardAccel -= 0.05f;
+                }
+
+                if (ForwardAccel <= SlowestSpeed)
+                    ForwardAccel = SlowestSpeed;
+            }
+            
             /*
             if (Input.GetAxis("Vertical") < 0)//reversing
             {
@@ -90,7 +115,7 @@ public class RBCarController : MonoBehaviour
         LeftFrontWheel.localRotation = Quaternion.Euler(LeftFrontWheel.localRotation.eulerAngles.x, (turnInput * MaxWheelTurn), LeftFrontWheel.localRotation.eulerAngles.z);
         RightFrontWheel.localRotation = Quaternion.Euler(RightFrontWheel.localRotation.eulerAngles.x, (turnInput * MaxWheelTurn), RightFrontWheel.localRotation.eulerAngles.z);
         transform.position = CarRB.transform.position;
-
+        GripStrength();
         Transmission();
     }
 
@@ -120,6 +145,19 @@ public class RBCarController : MonoBehaviour
         }
     }
 
+    void GripStrength()
+    {
+        if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.W))//STALL ACCELERATION + TIGHTEN TURNING STREGNTH.
+        {
+            Debug.Log("LOOK AT ME!");
+            if (CurrentGear == Gear.Third)//WHILE ON THIRD AND ACCELERATING
+            {
+                Debug.Log("LOOK AT ME!");
+            }
+
+            //MAKE ONE IF PLAYER LETS OFF THE GAS GIVE SOME GRIP BACK
+        }
+    }
     void Transmission()
     {
        
