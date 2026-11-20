@@ -357,8 +357,11 @@
 "Assets/Car.cs"
 "Assets/CarController.cs"
 "Assets/MovingCar.cs"
+"Assets/NewCarController.cs"
 "Assets/RBCarController.cs"
+"Assets/UnityCarControllers.cs"
 "Assets/WheelsController.cs"
+"Assets/WheelSettingTest.cs"
 -langversion:9.0
 
 /deterministic

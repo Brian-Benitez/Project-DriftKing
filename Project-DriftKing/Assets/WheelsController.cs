@@ -68,8 +68,8 @@ public class WheelsController : MonoBehaviour
 
             WheelVelocityLS = transform.InverseTransformDirection(rb.GetPointVelocity(hit.point));
 
-            FX = Input.GetAxis("Vertical") * 5f;//sped SAME HERE
-            FY = WheelVelocityLS.x * 5f;//NEEDS TO BE THE SAME
+            FX = Input.GetAxis("Vertical") * 2f;//sped SAME HERE
+            FY = WheelVelocityLS.x * 2f;//NEEDS TO BE THE SAME
 
 
             rb.AddForceAtPosition(suspensionForce + (FX * transform.forward) + (FY * -transform.right), hit.point);
